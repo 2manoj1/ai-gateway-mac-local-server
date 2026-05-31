@@ -1,12 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from src.dependencies.auth import verify_api_key
 from src.schemas.response import HealthResponse
 
-router = APIRouter(
-    tags=["Health"],
-    dependencies=[Depends(verify_api_key)],
-)
+router = APIRouter(tags=["Health"])
 
 
 @router.get(
@@ -14,15 +10,12 @@ router = APIRouter(
     response_model=HealthResponse,
     summary="Check gateway health",
     description=(
-        "Returns `ok` when the FastAPI gateway is running and authentication passes."
+        "Returns `ok` when the FastAPI gateway is running. No authentication required."
     ),
     operation_id="checkHealth",
     responses={
         200: {
-            "description": "Gateway is reachable.",
-        },
-        401: {
-            "description": "Missing or invalid API key.",
+            "description": "Gateway is reachable and healthy.",
         },
     },
 )

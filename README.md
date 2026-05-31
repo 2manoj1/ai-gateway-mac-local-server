@@ -130,7 +130,7 @@ make COMPOSE="docker compose" up
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-local",
+    api_key="<YOUR_CLIENT_API_KEY>",
     base_url="http://localhost:8000/v1",
 )
 
@@ -167,7 +167,7 @@ for chunk in stream:
 Gateway environment variables live in `apps/model-gateway/.env`.
 
 ```env
-API_KEY=sk-local
+ADMIN_SECRET=sk-admin-secret-change-me
 DATABASE_URL=postgresql+psycopg://aigateway:change-me-later@localhost:5432/aigateway
 REDIS_URL=redis://localhost:6379/0
 QDRANT_URL=http://localhost:6333
@@ -181,11 +181,11 @@ Infrastructure environment variables live in `infra/.env`.
 
 ## API Key Administration
 
-Use the bootstrap key from `apps/model-gateway/.env` as an admin key:
+Use the bootstrap admin secret from `apps/model-gateway/.env` to manage API keys:
 
 ```bash
 curl -X POST http://localhost:8000/admin/api-keys \
-  -H "Authorization: Bearer sk-local" \
+  -H "X-Admin-Secret: <ADMIN_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"name":"local-app"}'
 ```

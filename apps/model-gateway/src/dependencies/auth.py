@@ -21,55 +21,53 @@ async def verify_api_key(
     x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
     authorization: Annotated[str | None, Header(alias="Authorization")] = None,
 ) -> AuthContext:
-    settings = get_settings()
     candidate_api_key = extract_api_key(
         x_api_key=x_api_key,
         authorization=authorization,
     )
 
-    if candidate_api_key:
-        sessionmaker = getattr(request.app.state, "db_sessionmaker", None)
-
-        if sessionmaker is not None:
-            auth_context = await verify_database_api_key(
-                sessionmaker=sessionmaker,
-                candidate_api_key=candidate_api_key,
-            )
-
-            if auth_context is not None:
-                return auth_context
-
-    if api_keys_match(candidate_api_key, settings.api_key):
-        return AuthContext(
-            api_key_id=None,
-            api_key_name="env",
+    if not candidate_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
         )
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or missing API key",
+    sessionmaker = getattr(request.app.state, "db_sessionmaker", None)
+
+    if sessionmaker is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+        )
+
+    auth_context = await verify_database_api_key(
+        sessionmaker=sessionmaker,
+        candidate_api_key=candidate_api_key,
     )
+
+    if auth_context is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+        )
+
+    return auth_context
 
 
 async def verify_admin_api_key(
-    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
-    authorization: Annotated[str | None, Header(alias="Authorization")] = None,
+    x_admin_secret: Annotated[str | None, Header(alias="X-Admin-Secret")] = None,
 ) -> AuthContext:
     settings = get_settings()
-    candidate_api_key = extract_api_key(
-        x_api_key=x_api_key,
-        authorization=authorization,
-    )
 
-    if not api_keys_match(candidate_api_key, settings.api_key):
+    if not x_admin_secret or not api_keys_match(x_admin_secret, settings.admin_secret):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing admin API key",
+            detail="Invalid or missing admin secret",
         )
 
     return AuthContext(
         api_key_id=None,
-        api_key_name="env",
+        api_key_name="admin",
     )
 
 

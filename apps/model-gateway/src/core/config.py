@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    api_key: str = ""
+    admin_secret: str = ""
     database_url: str = (
         "postgresql+psycopg://aigateway:change-me-later@localhost:5432/aigateway"
     )
@@ -30,8 +30,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_required_settings(self) -> Self:
-        if not self.api_key:
-            raise ValueError("API_KEY is required")
+        if not self.admin_secret:
+            raise ValueError("ADMIN_SECRET is required")
         if not self.database_url:
             raise ValueError("DATABASE_URL is required")
         if not self.redis_url:

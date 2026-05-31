@@ -21,7 +21,7 @@ uv sync
 cp .env.example .env
 ```
 
-Set `API_KEY` in `.env`.
+Set `ADMIN_SECRET` in `.env` for protecting administrative routes.
 
 ## Migrate
 
@@ -31,11 +31,11 @@ uv run alembic upgrade head
 
 ## Admin API Keys
 
-Use the bootstrap env key to create PostgreSQL-backed client keys:
+Use the admin secret to create PostgreSQL-backed client keys:
 
 ```bash
 curl -X POST http://localhost:8000/admin/api-keys \
-  -H "Authorization: Bearer sk-local" \
+  -H "X-Admin-Secret: <ADMIN_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"name":"local-app"}'
 ```
@@ -69,7 +69,7 @@ make api-check
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-local",
+    api_key="<YOUR_CLIENT_API_KEY>",
     base_url="http://localhost:8000/v1",
 )
 

@@ -38,6 +38,13 @@ class ApiKeyRepository:
         result = await session.execute(statement)
         return list(result.scalars().all())
 
+    async def get_by_hash(
+        self,
+        session: AsyncSession,
+        key_hash: str,
+    ) -> ApiKey | None:
+        return await self.get_active_by_key_hash(session, key_hash)
+
     async def get_by_id(
         self,
         session: AsyncSession,
@@ -66,6 +73,13 @@ class ApiKeyRepository:
         await session.flush()
         return api_key
 
+    async def update_last_used(
+        self,
+        session: AsyncSession,
+        api_key: ApiKey,
+    ) -> ApiKey:
+        return await self.mark_last_used(session, api_key)
+
     async def deactivate(
         self,
         session: AsyncSession,
@@ -74,3 +88,11 @@ class ApiKeyRepository:
         api_key.is_active = False
         await session.flush()
         return api_key
+
+    async def delete(
+        self,
+        session: AsyncSession,
+        api_key: ApiKey,
+    ) -> None:
+        # Soft delete via deactivate
+        await self.deactivate(session, api_key)

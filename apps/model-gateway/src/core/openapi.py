@@ -6,8 +6,10 @@ application traffic to Ollama.
 
 Authentication:
 
-- OpenAI SDK clients should send `Authorization: Bearer sk-local`.
-- Direct HTTP clients may send `X-API-Key: sk-local`.
+- Clients must present a gateway API key via `X-API-Key` or an OpenAI-style
+  `Authorization: Bearer <key>` header.
+- Administrative routes are protected with `X-Admin-Secret` (set via
+  `ADMIN_SECRET`).
 
 Streaming:
 
@@ -56,6 +58,12 @@ def apply_openapi_customizations(openapi_schema: dict[str, Any]) -> dict[str, An
         "type": "http",
         "scheme": "bearer",
         "description": "OpenAI SDK-compatible bearer token.",
+    }
+    security_schemes["AdminSecret"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Admin-Secret",
+        "description": "Admin secret header for admin routes.",
     }
 
     openapi_schema["security"] = [

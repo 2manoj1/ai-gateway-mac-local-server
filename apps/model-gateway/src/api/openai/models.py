@@ -35,5 +35,4 @@ async def models(
     auth_context: AuthContextDependency,
     openai_service: Annotated[OpenAICompatibleService, Depends(get_openai_service)],
 ) -> ModelsResponse:
-    _ = auth_context
-    return await openai_service.list_models()
+    return await openai_service.list_models(auth_context=auth_context)

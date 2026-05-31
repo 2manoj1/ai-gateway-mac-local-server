@@ -36,7 +36,7 @@ Use:
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-local",
+    api_key="<YOUR_CLIENT_API_KEY>",
     base_url="http://localhost:8000/v1",
 )
 ```
@@ -45,8 +45,8 @@ client = OpenAI(
 
 PostgreSQL stores API key records and usage logs.
 
-The bootstrap `API_KEY` from the environment is used for admin access and local
-recovery. Client traffic should use PostgreSQL-backed keys created through:
+The bootstrap `ADMIN_SECRET` from the environment is used for admin access.
+Client traffic should use PostgreSQL-backed keys created through:
 
 - `POST /admin/api-keys`
 - `GET /admin/api-keys`

@@ -31,9 +31,13 @@ class OpenAICompatibleService:
         self._ollama_client = ollama_client
         self._usage_service = usage_service
 
-    async def list_models(self) -> ModelsResponse:
+    async def list_models(
+        self,
+        *,
+        auth_context: AuthContext,
+    ) -> ModelsResponse:
         models = await self._ollama_client.list_models()
-        return ModelsResponse(
+        response = ModelsResponse(
             data=[
                 ModelObject(
                     id=model.id,
@@ -44,6 +48,12 @@ class OpenAICompatibleService:
                 for model in models
             ],
         )
+        await self._usage_service.log_completion(
+            api_key_id=auth_context.api_key_id,
+            endpoint="/v1/models",
+            model="models",
+        )
+        return response
 
     async def create_chat_completion(
         self,

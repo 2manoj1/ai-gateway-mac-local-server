@@ -28,7 +28,7 @@ make api
 
 ```bash
 curl -X POST http://localhost:8000/admin/api-keys \
-  -H "Authorization: Bearer sk-local" \
+  -H "X-Admin-Secret: <ADMIN_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"name":"local-app"}'
 ```

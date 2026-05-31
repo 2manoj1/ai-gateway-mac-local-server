@@ -14,7 +14,7 @@ jobs:
       run:
         working-directory: apps/model-gateway
     env:
-      API_KEY: sk-local
+      ADMIN_SECRET: sk-admin-secret-change-me
       DATABASE_URL: postgresql+psycopg://aigateway:change-me-later@localhost:5432/aigateway
       REDIS_URL: redis://localhost:6379/0
       QDRANT_URL: http://localhost:6333
