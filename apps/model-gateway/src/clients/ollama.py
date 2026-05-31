@@ -19,6 +19,18 @@ class OllamaClient:
             base_url=settings.ollama_base_url,
         )
 
+    async def warmup(self, model: str) -> None:
+        await self._client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": "warmup",
+                }
+            ],
+            extra_body={"keep_alive": "-1"},
+        )
+
     async def close(self) -> None:
         await self._client.close()
 

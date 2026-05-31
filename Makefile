@@ -1,9 +1,12 @@
 COMPOSE ?= podman compose
 
-.PHONY: up down restart logs ps api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
+.PHONY: up infra-up down restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
 
 up:
 	cd infra && $(COMPOSE) up -d
+
+infra-up:
+	cd infra && $(COMPOSE) up -d postgres redis qdrant
 
 down:
 	cd infra && $(COMPOSE) down
@@ -16,6 +19,12 @@ logs:
 
 ps:
 	cd infra && $(COMPOSE) ps
+
+macos-server-install:
+	./scripts/macos/install-launchagents.sh
+
+macos-server-status:
+	./scripts/macos/launchagents-status.sh
 
 api:
 	cd apps/model-gateway && uv run uvicorn src.main:app --reload

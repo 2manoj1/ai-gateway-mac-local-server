@@ -68,6 +68,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.redis_client = redis_client
     app.state.qdrant_client = qdrant_client
 
+    if settings.ollama_warmup_on_startup:
+        await ollama_client.warmup(
+            model=settings.default_model,
+        )
+
     logger.info(
         "application_started",
         app_name=settings.app_name,

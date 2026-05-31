@@ -48,6 +48,20 @@ Only the key hash is stored. The plaintext key is returned once.
 uv run uvicorn src.main:app --reload
 ```
 
+## Run With Compose
+
+From the repository root:
+
+```bash
+cp infra/.env.example infra/.env
+make up
+```
+
+The Compose stack builds this service from `apps/model-gateway/Dockerfile` and
+publishes it on `http://localhost:8000`. Use
+`OLLAMA_BASE_URL=http://host.containers.internal:11434/v1` in `infra/.env` when
+Ollama is running directly on the host.
+
 ## Check
 
 ```bash

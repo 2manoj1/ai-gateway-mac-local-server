@@ -54,6 +54,7 @@ ai-gateway-mac-local-server/
 │       │   ├── services/
 │       │   └── utils/
 │       ├── tests/
+│       ├── Dockerfile
 │       ├── .env.example
 │       ├── .python-version
 │       ├── pyproject.toml
@@ -98,15 +99,21 @@ cp infra/.env.example infra/.env
 cp apps/model-gateway/.env.example apps/model-gateway/.env
 ```
 
-Start infrastructure:
+Start the full server stack with PostgreSQL, Redis, Qdrant, and the gateway
+container:
 
 ```bash
 make up
 ```
 
-Install API dependencies and run migrations:
+The gateway container runs migrations automatically when `RUN_MIGRATIONS=1` in
+`infra/.env`.
+
+For local API development, start only infrastructure, install API dependencies,
+and run migrations:
 
 ```bash
+make infra-up
 make api-sync
 make migrate-up
 ```
@@ -179,6 +186,10 @@ ENVIRONMENT=local
 
 Infrastructure environment variables live in `infra/.env`.
 
+For Compose, Ollama runs on the host machine by default, so
+`OLLAMA_BASE_URL=http://host.containers.internal:11434/v1` is used in
+`infra/.env.example`.
+
 ## API Key Administration
 
 Use the bootstrap admin secret from `apps/model-gateway/.env` to manage API keys:
@@ -213,10 +224,12 @@ Admin routes:
 ## Commands
 
 ```bash
-make up          # Start PostgreSQL, Redis, and Qdrant
-make down        # Stop infrastructure
-make logs        # Follow infrastructure logs
-make api         # Run the FastAPI gateway
+make up          # Start PostgreSQL, Redis, Qdrant, and the gateway container
+make infra-up    # Start only PostgreSQL, Redis, and Qdrant for local API dev
+make down        # Stop the Compose stack
+make logs        # Follow Compose stack logs
+make ps          # Show Compose stack status
+make api         # Run the FastAPI gateway locally with uvicorn
 make migrate-up  # Apply database migrations
 make format      # Format Python and Alembic files
 make lint        # Run Ruff
@@ -224,6 +237,25 @@ make type        # Run mypy
 make test        # Run pytest
 make api-check   # Run the full quality gate
 ```
+
+## Mac Server Mode
+
+For a MacBook acting as the local AI server, install user LaunchAgents:
+
+```bash
+make macos-server-install
+make macos-server-status
+```
+
+This keeps three user services active after login:
+
+- `com.manoj.ai-gateway-stack`: starts the Compose stack and reconciles it every
+  5 minutes.
+- `com.manoj.ai-gateway-tunnel`: runs the Cloudflare Tunnel to the gateway.
+- `com.manoj.caffeinate`: prevents system sleep while the Mac is plugged in and
+  serving traffic.
+
+LaunchAgent logs are written to `~/Library/Logs/ai-gateway`.
 
 ## Open Source Setup
 
