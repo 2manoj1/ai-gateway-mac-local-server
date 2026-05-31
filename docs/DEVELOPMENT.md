@@ -24,6 +24,15 @@ make migrate-up
 make api
 ```
 
+## Create a Client API Key
+
+```bash
+curl -X POST http://localhost:8000/admin/api-keys \
+  -H "Authorization: Bearer sk-local" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"local-app"}'
+```
+
 ## Pull a Model
 
 ```bash

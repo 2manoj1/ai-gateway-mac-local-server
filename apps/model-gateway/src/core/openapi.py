@@ -34,6 +34,12 @@ OPENAPI_TAGS: list[dict[str, str]] = [
             "Placeholder routes for future retrieval-augmented generation support."
         ),
     },
+    {
+        "name": "Admin",
+        "description": (
+            "Administrative routes for managing PostgreSQL-backed gateway API keys."
+        ),
+    },
 ]
 
 

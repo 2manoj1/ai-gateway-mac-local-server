@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from src.clients.ollama import OllamaClient
 from src.core.config import Settings, get_settings
 from src.dependencies.resources import get_ollama_client, get_sessionmaker
+from src.repositories.api_key_repository import ApiKeyRepository
 from src.repositories.usage_repository import UsageRepository
+from src.services.api_key_service import ApiKeyService
 from src.services.openai_service import OpenAICompatibleService
 from src.services.usage_service import UsageLoggingService
 
@@ -21,6 +23,10 @@ def get_usage_service(
         sessionmaker=sessionmaker,
         usage_repository=UsageRepository(),
     )
+
+
+def get_api_key_service() -> ApiKeyService:
+    return ApiKeyService(api_key_repository=ApiKeyRepository())
 
 
 def get_openai_service(

@@ -43,10 +43,18 @@ client = OpenAI(
 
 ## Persistence
 
-PostgreSQL stores future API key records and usage logs.
+PostgreSQL stores API key records and usage logs.
+
+The bootstrap `API_KEY` from the environment is used for admin access and local
+recovery. Client traffic should use PostgreSQL-backed keys created through:
+
+- `POST /admin/api-keys`
+- `GET /admin/api-keys`
+- `DELETE /admin/api-keys/{api_key_id}`
 
 Current usage log fields:
 
+- api_key_id
 - endpoint
 - model
 - tokens_input
@@ -57,7 +65,6 @@ Token accounting is intentionally prepared but not fully implemented yet.
 
 ## Future Work
 
-- PostgreSQL-backed API key validation
 - Token accounting
 - Redis-backed caching/rate limiting
 - Qdrant-backed RAG workflows

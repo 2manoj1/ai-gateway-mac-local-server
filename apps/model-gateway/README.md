@@ -29,6 +29,19 @@ Set `API_KEY` in `.env`.
 uv run alembic upgrade head
 ```
 
+## Admin API Keys
+
+Use the bootstrap env key to create PostgreSQL-backed client keys:
+
+```bash
+curl -X POST http://localhost:8000/admin/api-keys \
+  -H "Authorization: Bearer sk-local" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"local-app"}'
+```
+
+Only the key hash is stored. The plaintext key is returned once.
+
 ## Run
 
 ```bash

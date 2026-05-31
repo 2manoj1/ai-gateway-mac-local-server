@@ -14,7 +14,7 @@ lab or local development environment.
   - `POST /v1/chat/completions` with `stream=true`
 - Ollama backend using the OpenAI-compatible client.
 - Python 3.14, FastAPI, uv, Ruff, mypy, and pytest.
-- PostgreSQL foundation for API keys and usage logs.
+- PostgreSQL-backed API keys and usage logs.
 - Redis and Qdrant clients initialized for future caching, rate limiting, and RAG.
 - Alembic migrations.
 - Structured JSON logging with request IDs.
@@ -178,6 +178,37 @@ ENVIRONMENT=local
 ```
 
 Infrastructure environment variables live in `infra/.env`.
+
+## API Key Administration
+
+Use the bootstrap key from `apps/model-gateway/.env` as an admin key:
+
+```bash
+curl -X POST http://localhost:8000/admin/api-keys \
+  -H "Authorization: Bearer sk-local" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"local-app"}'
+```
+
+The response includes a plaintext `key` once. Store it securely. The database
+stores only a SHA-256 hash.
+
+Use that key with OpenAI-compatible clients:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-local-generated-value",
+    base_url="http://localhost:8000/v1",
+)
+```
+
+Admin routes:
+
+- `POST /admin/api-keys`
+- `GET /admin/api-keys`
+- `DELETE /admin/api-keys/{api_key_id}`
 
 ## Commands
 

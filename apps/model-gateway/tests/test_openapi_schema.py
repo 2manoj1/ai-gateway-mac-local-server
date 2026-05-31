@@ -16,3 +16,6 @@ def test_openapi_schema_documents_auth_and_streaming() -> None:
     tags = {tag["name"]: tag["description"] for tag in schema["tags"]}
     assert "OpenAI Compatible" in tags
     assert "OpenAI SDK-compatible" in tags["OpenAI Compatible"]
+    assert "Admin" in tags
+    assert "/admin/api-keys" in schema["paths"]
+    assert "/admin/api-keys/{api_key_id}" in schema["paths"]

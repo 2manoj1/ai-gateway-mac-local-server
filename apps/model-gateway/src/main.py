@@ -9,6 +9,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.api.admin.api_keys import router as admin_api_keys_router
 from src.api.openai.chat_completions import router as chat_completions_router
 from src.api.openai.models import router as openai_models_router
 from src.api.v1.health import router as health_router
@@ -128,6 +129,7 @@ def create_app(app_settings: Settings) -> FastAPI:
     app.include_router(rag_router, prefix=app_settings.api_v1_prefix)
     app.include_router(openai_models_router, prefix="/v1")
     app.include_router(chat_completions_router, prefix="/v1")
+    app.include_router(admin_api_keys_router, prefix="/admin")
 
     return app
 

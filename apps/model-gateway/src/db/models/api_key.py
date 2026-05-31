@@ -28,5 +28,9 @@ class ApiKey(Base):
         server_default=func.now(),
         nullable=False,
     )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     usage_logs: Mapped[list[UsageLog]] = relationship(back_populates="api_key")
