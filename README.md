@@ -215,6 +215,25 @@ client = OpenAI(
 )
 ```
 
+Stream a direct message through the LangGraph-backed agent endpoint:
+
+```bash
+curl -N http://localhost:8000/api/v1/agent/direct-message \
+  -H "Authorization: Bearer <CLIENT_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"/no_think Say hello in one short sentence.","model":"qwen3.5:9b"}'
+```
+
+For microservice-boundary testing, this variant calls the gateway's
+`/v1/chat/completions` endpoint over HTTP from inside the LangGraph node:
+
+```bash
+curl -N http://localhost:8000/api/v1/agent/direct-message/completions-api \
+  -H "Authorization: Bearer <CLIENT_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"/no_think Reply with exactly: agent-ok","model":"qwen3.5:9b"}'
+```
+
 Admin routes:
 
 - `POST /admin/api-keys`

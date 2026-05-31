@@ -1,12 +1,18 @@
 COMPOSE ?= podman compose
 
-.PHONY: up infra-up down restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
+.PHONY: up infra-up dev-up dev-down down restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
 
 up:
 	cd infra && $(COMPOSE) up -d
 
 infra-up:
 	cd infra && $(COMPOSE) up -d postgres redis qdrant
+
+dev-up:
+	./scripts/dev-up.sh
+
+dev-down:
+	./scripts/dev-down.sh
 
 down:
 	cd infra && $(COMPOSE) down

@@ -26,9 +26,6 @@ async def initialize_db_state() -> AsyncGenerator[None]:
 
     yield
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
     await engine.dispose()
 
 

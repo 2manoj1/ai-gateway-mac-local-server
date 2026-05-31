@@ -30,9 +30,6 @@ async def initialize_db_state() -> AsyncGenerator[None]:
 
     yield
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
     await engine.dispose()
 
 
@@ -96,3 +93,6 @@ async def test_verify_database_api_key_updates_last_used_at() -> None:
 
         assert stored_api_key is not None
         assert stored_api_key.last_used_at is not None
+
+        await session.delete(stored_api_key)
+        await session.commit()

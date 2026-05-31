@@ -8,6 +8,7 @@ from src.core.config import Settings, get_settings
 from src.dependencies.resources import get_ollama_client, get_sessionmaker
 from src.repositories.api_key_repository import ApiKeyRepository
 from src.repositories.usage_repository import UsageRepository
+from src.services.agent_service import DirectMessageAgentService
 from src.services.api_key_service import ApiKeyService
 from src.services.openai_service import OpenAICompatibleService
 from src.services.usage_service import UsageLoggingService
@@ -38,4 +39,17 @@ def get_openai_service(
         settings=settings,
         ollama_client=ollama_client,
         usage_service=usage_service,
+    )
+
+
+def get_direct_message_agent_service(
+    openai_service: Annotated[
+        OpenAICompatibleService,
+        Depends(get_openai_service),
+    ],
+) -> DirectMessageAgentService:
+    settings: Settings = get_settings()
+    return DirectMessageAgentService(
+        settings=settings,
+        openai_service=openai_service,
     )

@@ -48,6 +48,28 @@ curl -X POST http://localhost:8000/admin/api-keys \
 ollama pull qwen3.5:9b
 ```
 
+## Stream Through the LangGraph Agent
+
+Create a client API key first, then call the direct-message agent endpoint:
+
+```bash
+curl -N http://localhost:8000/api/v1/agent/direct-message \
+  -H "Authorization: Bearer <CLIENT_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"/no_think Say hello in one short sentence.","model":"qwen3.5:9b"}'
+```
+
+To test the exact HTTP boundary that another microservice would call, use the
+completion-API variant. The LangGraph node calls this gateway's
+`/v1/chat/completions` endpoint over HTTP and streams the response back:
+
+```bash
+curl -N http://localhost:8000/api/v1/agent/direct-message/completions-api \
+  -H "Authorization: Bearer <CLIENT_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"/no_think Reply with exactly: agent-ok","model":"qwen3.5:9b"}'
+```
+
 ## Quality Gate
 
 ```bash

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     qdrant_url: str = "http://localhost:6333"
     ollama_base_url: str = "http://localhost:11434/v1"
+    internal_gateway_base_url: str = "http://127.0.0.1:8000"
     ollama_warmup_on_startup: bool = True
     default_model: str = "qwen3.5:9b"
 
