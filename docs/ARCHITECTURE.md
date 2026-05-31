@@ -28,6 +28,7 @@ The gateway supports the OpenAI SDK by exposing:
 
 - `GET /v1/models`
 - `POST /v1/chat/completions`
+- `POST /v1/chat/completions` with `stream=true`
 
 Use:
 
@@ -60,4 +61,4 @@ Token accounting is intentionally prepared but not fully implemented yet.
 - Token accounting
 - Redis-backed caching/rate limiting
 - Qdrant-backed RAG workflows
-- OpenAI-compatible streaming responses
+- More OpenAI-compatible endpoints, including embeddings and image generation

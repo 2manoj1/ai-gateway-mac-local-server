@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from typing import Any, cast
 
 from openai import APIConnectionError, APIError, APITimeoutError, AsyncOpenAI
@@ -60,3 +61,37 @@ class OllamaClient:
             raise OllamaClientError("Ollama returned no chat choices")
 
         return response.choices[0].message.content or ""
+
+    async def stream_chat_completion(
+        self,
+        *,
+        model: str,
+        messages: list[ChatMessage],
+    ) -> AsyncIterator[str]:
+        openai_messages = cast(
+            list[ChatCompletionMessageParam],
+            [
+                {
+                    "role": message.role,
+                    "content": message.content,
+                }
+                for message in messages
+            ],
+        )
+
+        try:
+            stream = await self._client.chat.completions.create(
+                model=model,
+                messages=openai_messages,
+                stream=True,
+            )
+        except (APIConnectionError, APITimeoutError, APIError) as exc:
+            raise OllamaClientError("Unable to stream completion from Ollama") from exc
+
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
+
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content

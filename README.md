@@ -11,6 +11,7 @@ lab or local development environment.
 - OpenAI SDK-compatible endpoints:
   - `GET /v1/models`
   - `POST /v1/chat/completions`
+  - `POST /v1/chat/completions` with `stream=true`
 - Ollama backend using the OpenAI-compatible client.
 - Python 3.14, FastAPI, uv, Ruff, mypy, and pytest.
 - PostgreSQL foundation for API keys and usage logs.
@@ -143,6 +144,22 @@ response = client.chat.completions.create(
 )
 
 print(response.choices[0].message.content)
+```
+
+Streaming:
+
+```python
+stream = client.chat.completions.create(
+    model="qwen3.5:9b",
+    messages=[
+        {"role": "user", "content": "hello"},
+    ],
+    stream=True,
+)
+
+for chunk in stream:
+    if chunk.choices and chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="")
 ```
 
 ## Environment

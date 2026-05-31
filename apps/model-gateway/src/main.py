@@ -1,9 +1,11 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import structlog
 from fastapi import FastAPI, Request, status
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -16,6 +18,11 @@ from src.clients.qdrant import create_qdrant_client
 from src.clients.redis import create_redis_client
 from src.core.config import Settings, get_settings
 from src.core.logging import configure_logging
+from src.core.openapi import (
+    OPENAPI_DESCRIPTION,
+    OPENAPI_TAGS,
+    apply_openapi_customizations,
+)
 from src.db.session import create_engine, create_sessionmaker
 from src.middleware.logging import StructuredLoggingMiddleware
 from src.middleware.request_id import RequestIdMiddleware
@@ -79,11 +86,38 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("application_stopped", app_name=settings.app_name)
 
 
+class DeveloperFriendlyFastAPI(FastAPI):
+    def openapi(self) -> dict[str, Any]:
+        if self.openapi_schema:
+            return self.openapi_schema
+
+        openapi_schema = get_openapi(
+            title=self.title,
+            version=self.version,
+            summary=self.summary,
+            description=self.description,
+            routes=self.routes,
+            tags=self.openapi_tags,
+        )
+        self.openapi_schema = apply_openapi_customizations(openapi_schema)
+        return self.openapi_schema
+
+
 def create_app(app_settings: Settings) -> FastAPI:
-    app = FastAPI(
+    app = DeveloperFriendlyFastAPI(
         title=app_settings.app_name,
-        description="OpenAI-compatible AI Gateway backed by local Ollama.",
+        summary="Local OpenAI-compatible gateway for Ollama-backed model traffic.",
+        description=OPENAPI_DESCRIPTION,
         version=app_settings.app_version,
+        contact={
+            "name": "AI Gateway Mac Local Server",
+            "url": "https://github.com/2manoj1/ai-gateway-mac-local-server",
+        },
+        license_info={
+            "name": "MIT",
+            "identifier": "MIT",
+        },
+        openapi_tags=OPENAPI_TAGS,
         lifespan=lifespan,
     )
 

@@ -65,4 +65,10 @@ response = client.chat.completions.create(
     model="qwen3.5:9b",
     messages=[{"role": "user", "content": "hello"}],
 )
+
+stream = client.chat.completions.create(
+    model="qwen3.5:9b",
+    messages=[{"role": "user", "content": "hello"}],
+    stream=True,
+)
 ```

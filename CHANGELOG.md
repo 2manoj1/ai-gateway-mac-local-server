@@ -6,6 +6,7 @@ This project follows a simple date-based changelog while it is pre-1.0.
 
 ## Unreleased
 
+- Added OpenAI-compatible streaming chat completions.
 - Added production-style FastAPI model gateway structure.
 - Added OpenAI-compatible `/v1/models` and `/v1/chat/completions` routes.
 - Added Ollama, PostgreSQL, Redis, and Qdrant integration foundations.
