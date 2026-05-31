@@ -1,0 +1,32 @@
+{
+  "editor.defaultFormatter": "charliermarsh.ruff",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.ruff": "explicit",
+    "source.organizeImports.ruff": "explicit"
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/model-gateway/.venv/bin/python",
+  "python.analysis.typeCheckingMode": "standard",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/apps/model-gateway"
+  ],
+  "mypy-type-checker.args": [
+    "--config-file",
+    "${workspaceFolder}/apps/model-gateway/pyproject.toml"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.cwd": "${workspaceFolder}/apps/model-gateway",
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "ruff.configuration": "${workspaceFolder}/apps/model-gateway/pyproject.toml",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  }
+}

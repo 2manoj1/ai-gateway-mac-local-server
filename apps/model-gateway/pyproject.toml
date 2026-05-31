@@ -1,0 +1,84 @@
+[project]
+name = "gateway-api"
+version = "0.1.0"
+description = "FastAPI AI Gateway backed by local Ollama."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.13",
+    "fastapi>=0.136.3",
+    "greenlet>=3.0",
+    "openai>=2.38.0",
+    "psycopg[binary]>=3.2",
+    "pydantic-settings>=2.14.1",
+    "python-dotenv>=1.2.2",
+    "qdrant-client>=1.12",
+    "redis>=5.0",
+    "sqlalchemy>=2.0",
+    "structlog>=24.0",
+    "uvicorn>=0.48.0",
+]
+
+[project.optional-dependencies]
+auth = [
+    "pyjwt>=2.13.0",
+]
+rate-limit = [
+    "slowapi>=0.1.9",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.1.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.15",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "B",
+    "E",
+    "F",
+    "I",
+    "RUF",
+    "SIM",
+    "UP",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = []
+mypy_path = ["."]
+files = ["src", "tests"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_any_generics = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "qdrant_client.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
