@@ -1,5 +1,5 @@
 [project]
-name = "gateway-api"
+name = "ai-gateway-mac-local-server"
 version = "0.1.0"
 description = "FastAPI AI Gateway backed by local Ollama."
 readme = "README.md"

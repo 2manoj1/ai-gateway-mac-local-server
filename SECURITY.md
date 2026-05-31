@@ -8,9 +8,9 @@ This project is early-stage. Security fixes target the current `main` branch.
 
 Please do not open a public issue for a security vulnerability.
 
-If this repository is published under your GitHub account, enable GitHub private
-vulnerability reporting or add a private contact email here before announcing
-the project publicly.
+For the public GitHub repository, enable GitHub private vulnerability reporting
+or add a private maintainer contact email before announcing a production-ready
+release.
 
 Include:
 

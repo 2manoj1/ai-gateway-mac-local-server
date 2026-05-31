@@ -1,7 +1,7 @@
 # Architecture
 
-AI Home Lab Gateway is a local-first OpenAI-compatible gateway for running
-model traffic through FastAPI before forwarding requests to Ollama.
+AI Gateway Mac Local Server is a local-first OpenAI-compatible gateway for
+running model traffic through FastAPI before forwarding requests to Ollama.
 
 ## Request Flow
 

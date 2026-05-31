@@ -1,4 +1,4 @@
-# AI Home Lab Gateway
+# AI Gateway Mac Local Server
 
 OpenAI-compatible local AI gateway for routing application traffic through a
 FastAPI service before forwarding requests to Ollama or future model providers.
@@ -31,7 +31,7 @@ Client application
 ## Repository Structure
 
 ```text
-ai-gateway/
+ai-gateway-mac-local-server/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   ├── workflows/
@@ -90,8 +90,8 @@ contains HTTP route modules.
 Clone and configure:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-gateway.git
-cd ai-gateway
+git clone https://github.com/2manoj1/ai-gateway-mac-local-server.git
+cd ai-gateway-mac-local-server
 
 cp infra/.env.example infra/.env
 cp apps/model-gateway/.env.example apps/model-gateway/.env
@@ -191,25 +191,14 @@ This repository includes:
 - GitHub Actions CI
 - Dependabot configuration
 
-Before publishing, read [docs/OPEN_SOURCE_RELEASE.md](docs/OPEN_SOURCE_RELEASE.md).
+Release hygiene notes live in
+[docs/OPEN_SOURCE_RELEASE.md](docs/OPEN_SOURCE_RELEASE.md).
 
-## GitHub Publish Commands
+## GitHub Repository
 
-After creating an empty GitHub repository:
+This project is published at:
 
-```bash
-git add .
-git commit -m "Initial open source release"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/ai-gateway.git
-git push -u origin main
-```
-
-If you use GitHub CLI:
-
-```bash
-gh repo create YOUR_USERNAME/ai-gateway --public --source=. --remote=origin --push
-```
+<https://github.com/2manoj1/ai-gateway-mac-local-server>
 
 ## Documentation
 

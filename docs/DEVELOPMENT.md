@@ -1,5 +1,7 @@
 # Development
 
+Repository: <https://github.com/2manoj1/ai-gateway-mac-local-server>
+
 ## Requirements
 
 - Python 3.14
@@ -10,6 +12,9 @@
 ## First Run
 
 ```bash
+git clone https://github.com/2manoj1/ai-gateway-mac-local-server.git
+cd ai-gateway-mac-local-server
+
 cp infra/.env.example infra/.env
 cp apps/model-gateway/.env.example apps/model-gateway/.env
 

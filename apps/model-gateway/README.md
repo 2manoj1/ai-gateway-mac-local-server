@@ -2,6 +2,9 @@
 
 FastAPI AI gateway backed by local Ollama.
 
+Part of
+[AI Gateway Mac Local Server](https://github.com/2manoj1/ai-gateway-mac-local-server).
+
 ## Requirements
 
 - Python 3.14

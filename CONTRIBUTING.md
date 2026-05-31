@@ -1,12 +1,12 @@
 # Contributing
 
-Thanks for helping improve AI Home Lab Gateway.
+Thanks for helping improve AI Gateway Mac Local Server.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-gateway.git
-cd ai-gateway
+git clone https://github.com/2manoj1/ai-gateway-mac-local-server.git
+cd ai-gateway-mac-local-server
 
 cp infra/.env.example infra/.env
 cp apps/model-gateway/.env.example apps/model-gateway/.env
