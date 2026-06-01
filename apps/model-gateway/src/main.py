@@ -122,8 +122,9 @@ def create_app(app_settings: Settings) -> FastAPI:
         description=OPENAPI_DESCRIPTION,
         version=app_settings.app_version,
         contact={
-            "name": "AI Gateway Mac Local Server",
+            "name": "Manoj Mukherjee - AI Gateway Local Mac Server for Research",
             "url": "https://github.com/2manoj1/ai-gateway-mac-local-server",
+            "email": "info@manojmukherjee.co.in",
         },
         license_info={
             "name": "MIT",
