@@ -17,11 +17,13 @@ wheels/
 /**/*/venv
 /**/*/env
 /**/*/.env
+infra/.env.dev
 /**/*/venv.bak
 /**/*/env.bak
 
 # Infra Volumes
 infra/volumes/
+infra/volumes-dev/
 
 # OS / editor local files
 .DS_Store

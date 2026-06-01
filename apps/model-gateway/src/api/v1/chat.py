@@ -30,4 +30,12 @@ async def chat(
         ),
         auth_context=auth_context,
     )
-    return ChatResponse(response=completion.choices[0].message.content)
+    choices = completion.get("choices", [])
+    content = ""
+
+    if choices:
+        message = choices[0].get("message", {})
+        value = message.get("content", "")
+        content = value if isinstance(value, str) else str(value)
+
+    return ChatResponse(response=content)

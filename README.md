@@ -10,8 +10,13 @@ lab or local development environment.
 
 - OpenAI SDK-compatible endpoints:
   - `GET /v1/models`
+  - `GET /v1/models/{model}`
   - `POST /v1/chat/completions`
   - `POST /v1/chat/completions` with `stream=true`
+  - `POST /v1/completions`
+  - `POST /v1/embeddings`
+  - `POST /v1/responses`
+  - `POST /v1/images/generations`
 - Ollama backend using the OpenAI-compatible client.
 - Python 3.14, FastAPI, uv, Ruff, mypy, and pytest.
 - PostgreSQL-backed API keys and usage logs.
@@ -95,15 +100,15 @@ Clone and configure:
 git clone https://github.com/2manoj1/ai-gateway-mac-local-server.git
 cd ai-gateway-mac-local-server
 
-cp infra/.env.example infra/.env
+cp infra/.env.dev.example infra/.env.dev
 cp apps/model-gateway/.env.example apps/model-gateway/.env
 ```
 
-Start the full server stack with PostgreSQL, Redis, Qdrant, and the gateway
-container:
+Start the development stack with PostgreSQL, Redis, Qdrant, and the gateway
+container on port `8010`:
 
 ```bash
-make up
+make dev-up
 ```
 
 The gateway container runs migrations automatically when `RUN_MIGRATIONS=1` in
@@ -131,6 +136,33 @@ Use Docker Compose instead of Podman Compose:
 make COMPOSE="docker compose" up
 ```
 
+## Dev vs Production
+
+Development and production intentionally use different ports and env files:
+
+- Development: `infra/compose.dev.yaml`, `infra/.env.dev`, gateway on
+  `127.0.0.1:8010`.
+- Production: `infra/compose.yaml`, `infra/.env`, gateway on
+  `127.0.0.1:8000`.
+
+In production, only the gateway is published to the host. PostgreSQL, Redis, and
+Qdrant stay private on the Compose network. Cloudflare Tunnel should point only
+at:
+
+```text
+http://127.0.0.1:8000
+```
+
+External clients should use your tunnel hostname with the OpenAI-compatible
+prefix:
+
+```text
+https://<your-cloudflare-hostname>/v1
+```
+
+Keep `/admin/*` protected by `ADMIN_SECRET`; if possible, add a Cloudflare rule
+so only trusted IPs/devices can reach admin routes.
+
 ## OpenAI SDK Usage
 
 ```python
@@ -138,7 +170,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="<YOUR_CLIENT_API_KEY>",
-    base_url="http://localhost:8000/v1",
+    base_url="http://localhost:8010/v1",
 )
 
 models = client.models.list()
@@ -175,30 +207,49 @@ Gateway environment variables live in `apps/model-gateway/.env`.
 
 ```env
 ADMIN_SECRET=sk-admin-secret-change-me
-DATABASE_URL=postgresql+psycopg://aigateway:change-me-later@localhost:5432/aigateway
-REDIS_URL=redis://localhost:6379/0
-QDRANT_URL=http://localhost:6333
+DATABASE_URL=postgresql+psycopg://aigateway:change-me-later@localhost:5433/aigateway_dev
+REDIS_URL=redis://localhost:6380/0
+QDRANT_URL=http://localhost:6335
 OLLAMA_BASE_URL=http://localhost:11434/v1
 DEFAULT_MODEL=qwen3.5:9b
 APP_NAME=Gateway API
-ENVIRONMENT=local
+ENVIRONMENT=development
 ```
 
-Infrastructure environment variables live in `infra/.env`.
+Development infrastructure environment variables live in `infra/.env.dev`.
 
 For Compose, Ollama runs on the host machine by default, so
 `OLLAMA_BASE_URL=http://host.containers.internal:11434/v1` is used in
-`infra/.env.example`.
+`infra/.env.dev.example`.
+
+Production infrastructure environment variables live in `infra/.env`. In the
+production copy, keep:
+
+```env
+GATEWAY_PORT=8000
+OLLAMA_BASE_URL=http://host.containers.internal:11434/v1
+DEFAULT_MODEL=qwen3.5:9b
+```
 
 ## API Key Administration
 
-Use the bootstrap admin secret from `apps/model-gateway/.env` to manage API keys:
+Use the bootstrap admin secret to manage API keys. In development:
 
 ```bash
-curl -X POST http://localhost:8000/admin/api-keys \
+curl -X POST http://localhost:8010/admin/api-keys \
   -H "X-Admin-Secret: <ADMIN_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"name":"local-app"}'
+```
+
+In production, call the local gateway directly from the server or through your
+restricted Cloudflare admin policy:
+
+```bash
+curl -X POST http://127.0.0.1:8000/admin/api-keys \
+  -H "X-Admin-Secret: <ADMIN_SECRET>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"website"}'
 ```
 
 The response includes a plaintext `key` once. Store it securely. The database
@@ -211,14 +262,23 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="sk-local-generated-value",
-    base_url="http://localhost:8000/v1",
+    base_url="http://localhost:8010/v1",
+)
+```
+
+For production through Cloudflare Tunnel:
+
+```python
+client = OpenAI(
+    api_key="sk-production-generated-value",
+    base_url="https://<your-cloudflare-hostname>/v1",
 )
 ```
 
 Stream a direct message through the LangGraph-backed agent endpoint:
 
 ```bash
-curl -N http://localhost:8000/api/v1/agent/direct-message \
+curl -N http://localhost:8010/api/v1/agent/direct-message \
   -H "Authorization: Bearer <CLIENT_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{"message":"/no_think Say hello in one short sentence.","model":"qwen3.5:9b"}'
@@ -228,7 +288,7 @@ For microservice-boundary testing, this variant calls the gateway's
 `/v1/chat/completions` endpoint over HTTP from inside the LangGraph node:
 
 ```bash
-curl -N http://localhost:8000/api/v1/agent/direct-message/completions-api \
+curl -N http://localhost:8010/api/v1/agent/direct-message/completions-api \
   -H "Authorization: Bearer <CLIENT_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{"message":"/no_think Reply with exactly: agent-ok","model":"qwen3.5:9b"}'
@@ -243,11 +303,12 @@ Admin routes:
 ## Commands
 
 ```bash
-make up          # Start PostgreSQL, Redis, Qdrant, and the gateway container
-make infra-up    # Start only PostgreSQL, Redis, and Qdrant for local API dev
-make down        # Stop the Compose stack
-make logs        # Follow Compose stack logs
-make ps          # Show Compose stack status
+make dev-up      # Start the development stack on port 8010
+make up          # Alias for the development stack on port 8010
+make infra-up    # Start only development PostgreSQL, Redis, and Qdrant
+make down        # Stop the development Compose stack
+make logs        # Follow development Compose stack logs
+make ps          # Show development Compose stack status
 make api         # Run the FastAPI gateway locally with uvicorn
 make migrate-up  # Apply database migrations
 make format      # Format Python and Alembic files

@@ -4,14 +4,19 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.admin.api_keys import router as admin_api_keys_router
 from src.api.openai.chat_completions import router as chat_completions_router
+from src.api.openai.completions import router as completions_router
+from src.api.openai.embeddings import router as embeddings_router
+from src.api.openai.images import router as images_router
 from src.api.openai.models import router as openai_models_router
+from src.api.openai.responses import router as responses_router
 from src.api.v1.agent import router as agent_router
 from src.api.v1.health import router as health_router
 from src.api.v1.rag import router as rag_router
@@ -136,6 +141,10 @@ def create_app(app_settings: Settings) -> FastAPI:
     app.include_router(agent_router, prefix=app_settings.api_v1_prefix)
     app.include_router(openai_models_router, prefix="/v1")
     app.include_router(chat_completions_router, prefix="/v1")
+    app.include_router(completions_router, prefix="/v1")
+    app.include_router(embeddings_router, prefix="/v1")
+    app.include_router(responses_router, prefix="/v1")
+    app.include_router(images_router, prefix="/v1")
     app.include_router(admin_api_keys_router, prefix="/admin")
 
     return app
@@ -155,10 +164,49 @@ async def ollama_client_exception_handler(
         error=str(exc),
     )
     return openai_error_response(
-        status_code=status.HTTP_502_BAD_GATEWAY,
+        status_code=exc.status_code,
         message=str(exc),
-        error_type="ollama_error",
-        code="bad_gateway",
+        error_type=exc.error_type,
+        code=exc.code,
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(
+    request: Request,
+    exc: HTTPException,
+) -> JSONResponse:
+    _ = request
+    message = exc.detail if isinstance(exc.detail, str) else "Request failed"
+    error_type = (
+        "authentication_error"
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED
+        else "invalid_request_error"
+    )
+    code = (
+        "unauthorized"
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED
+        else str(exc.status_code)
+    )
+    return openai_error_response(
+        status_code=exc.status_code,
+        message=message,
+        error_type=error_type,
+        code=code,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    _ = request
+    return openai_error_response(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        message="Invalid request body",
+        error_type="invalid_request_error",
+        code="invalid_request",
     )
 
 

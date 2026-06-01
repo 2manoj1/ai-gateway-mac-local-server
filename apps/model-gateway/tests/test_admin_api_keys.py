@@ -111,4 +111,11 @@ async def test_admin_api_key_requires_admin_secret() -> None:
         )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
-    assert response.json()["detail"] == "Invalid or missing admin secret"
+    assert response.json() == {
+        "error": {
+            "message": "Invalid or missing admin secret",
+            "type": "authentication_error",
+            "param": None,
+            "code": "unauthorized",
+        }
+    }

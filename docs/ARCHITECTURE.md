@@ -27,8 +27,13 @@ Client
 The gateway supports the OpenAI SDK by exposing:
 
 - `GET /v1/models`
+- `GET /v1/models/{model}`
 - `POST /v1/chat/completions`
 - `POST /v1/chat/completions` with `stream=true`
+- `POST /v1/completions`
+- `POST /v1/embeddings`
+- `POST /v1/responses`
+- `POST /v1/images/generations`
 
 Use:
 
@@ -37,9 +42,15 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="<YOUR_CLIENT_API_KEY>",
-    base_url="http://localhost:8000/v1",
+    base_url="http://localhost:8010/v1",
 )
 ```
+
+Production exposes the gateway on `127.0.0.1:8000` for Cloudflare Tunnel. Public
+clients should use the tunnel hostname, for example
+`https://<your-cloudflare-hostname>/v1`.
+
+PostgreSQL, Redis, and Qdrant stay private on the Compose network in production.
 
 ## Persistence
 
@@ -68,4 +79,3 @@ Token accounting is intentionally prepared but not fully implemented yet.
 - Token accounting
 - Redis-backed caching/rate limiting
 - Qdrant-backed RAG workflows
-- More OpenAI-compatible endpoints, including embeddings and image generation

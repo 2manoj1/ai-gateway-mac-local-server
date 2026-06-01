@@ -1,11 +1,12 @@
+from collections.abc import Sequence
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, model_validator
 
 
 class ChatMessage(BaseModel):
-    role: Literal["system", "user", "assistant", "tool"]
-    content: str
+    role: str
+    content: Any = None
 
     model_config = ConfigDict(
         extra="allow",
@@ -22,7 +23,8 @@ class ChatMessage(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model: str | None = None
-    messages: list[ChatMessage] = Field(min_length=1)
+    messages: list[ChatMessage] | None = None
+    prompt: str | None = None
     stream: bool = False
 
     model_config = ConfigDict(
@@ -53,10 +55,91 @@ class ChatCompletionRequest(BaseModel):
         },
     )
 
+    @model_validator(mode="after")
+    def validate_messages_or_prompt(self) -> ChatCompletionRequest:
+        if not self.messages and self.prompt is None:
+            raise ValueError("Either messages or prompt is required")
+        return self
+
+
+class CompletionRequest(BaseModel):
+    model: str | None = None
+    prompt: str | Sequence[str] | Sequence[int] | Sequence[Sequence[int]]
+    stream: bool = False
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "model": "qwen3.5:9b",
+                    "prompt": "Write one sentence about local AI.",
+                    "stream": False,
+                }
+            ]
+        },
+    )
+
+
+class EmbeddingRequest(BaseModel):
+    model: str | None = None
+    input: str | Sequence[str] | Sequence[int] | Sequence[Sequence[int]]
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "model": "nomic-embed-text",
+                    "input": "hello",
+                }
+            ]
+        },
+    )
+
+
+class ResponseRequest(BaseModel):
+    model: str | None = None
+    input: Any = None
+    stream: bool = False
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "model": "qwen3.5:9b",
+                    "input": "hello",
+                    "stream": False,
+                }
+            ]
+        },
+    )
+
+
+class ImageGenerationRequest(BaseModel):
+    model: str | None = None
+    prompt: str
+    stream: bool = False
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "model": "x/z-image-turbo",
+                    "prompt": "A robot painting",
+                    "size": "1024x1024",
+                    "response_format": "b64_json",
+                }
+            ]
+        },
+    )
+
 
 class ChatCompletionMessage(BaseModel):
     role: Literal["assistant"] = "assistant"
-    content: str
+    content: Any = None
 
 
 class ChatCompletionChoice(BaseModel):

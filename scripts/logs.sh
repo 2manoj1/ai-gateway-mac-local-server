@@ -2,5 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE="${COMPOSE:-podman compose}"
 
-docker compose --env-file "$ROOT_DIR/infra/.env" -f "$ROOT_DIR/infra/compose.yaml" logs -f "$@"
+cd "$ROOT_DIR/infra"
+${COMPOSE} --env-file .env -f compose.yaml logs -f "$@"

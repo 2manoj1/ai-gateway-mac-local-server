@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 
 from src.dependencies.auth import AuthContextDependency
 from src.dependencies.services import get_openai_service
-from src.schemas.openai import ChatCompletionRequest, ChatCompletionResponse
+from src.schemas.openai import ChatCompletionRequest, JsonDict
 from src.services.openai_service import OpenAICompatibleService
 
 router = APIRouter(tags=["OpenAI Compatible"])
@@ -28,10 +28,12 @@ STREAMING_EXAMPLE = "\n\n".join(
 
 @router.post(
     "/chat/completions",
-    response_model=ChatCompletionResponse,
+    response_model=None,
     summary="Create a chat completion",
     description=(
         "OpenAI-compatible chat completions endpoint backed by Ollama. "
+        "OpenAI, Ollama, and OpenRouter-style request fields are passed through "
+        "to the upstream provider when possible. "
         "Set `stream=true` in the request body or query string to receive "
         "Server-Sent Events using OpenAI-style `chat.completion.chunk` payloads."
     ),
@@ -86,7 +88,7 @@ async def chat_completions(
             ),
         ),
     ] = None,
-) -> ChatCompletionResponse | StreamingResponse:
+) -> JsonDict | StreamingResponse:
     if stream or request.stream:
         return StreamingResponse(
             openai_service.stream_chat_completion(

@@ -12,6 +12,11 @@ def test_openapi_schema_documents_auth_and_streaming() -> None:
     assert chat_completion["summary"] == "Create a chat completion"
     assert chat_completion["operationId"] == "createChatCompletion"
     assert "text/event-stream" in chat_completion["responses"]["200"]["content"]
+    assert "/v1/completions" in schema["paths"]
+    assert "/v1/embeddings" in schema["paths"]
+    assert "/v1/responses" in schema["paths"]
+    assert "/v1/images/generations" in schema["paths"]
+    assert "/v1/models/{model}" in schema["paths"]
 
     tags = {tag["name"]: tag["description"] for tag in schema["tags"]}
     assert "OpenAI Compatible" in tags

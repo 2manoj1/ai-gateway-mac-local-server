@@ -3,4 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../infra"
 
-podman compose -f compose.dev.yaml --env-file .env.dev down
+if [[ ! -f .env.dev ]]; then
+  cp .env.dev.example .env.dev
+fi
+
+podman compose -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev down

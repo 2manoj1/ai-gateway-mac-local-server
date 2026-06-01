@@ -5,7 +5,7 @@ import pytest
 from src.clients.ollama import OllamaClient
 from src.core.config import get_settings
 from src.dependencies.auth import AuthContext
-from src.schemas.openai import ChatCompletionRequest, ChatMessage
+from src.schemas.openai import ChatCompletionRequest, JsonDict
 from src.services.openai_service import OpenAICompatibleService
 from src.services.usage_service import UsageLoggingService
 
@@ -14,12 +14,25 @@ class FakeOllamaClient:
     async def stream_chat_completion(
         self,
         *,
-        model: str,
-        messages: list[ChatMessage],
+        payload: JsonDict,
     ) -> AsyncIterator[str]:
-        _ = (model, messages)
-        yield "hel"
-        yield "lo"
+        assert payload["model"] == "qwen3.5:9b"
+        assert payload["temperature"] == 0.2
+        yield (
+            '{"id":"chatcmpl-test","object":"chat.completion.chunk",'
+            '"created":1780200000,"model":"qwen3.5:9b",'
+            '"choices":[{"index":0,"delta":{"role":"assistant"}}]}'
+        )
+        yield (
+            '{"id":"chatcmpl-test","object":"chat.completion.chunk",'
+            '"created":1780200000,"model":"qwen3.5:9b",'
+            '"choices":[{"index":0,"delta":{"content":"hello"}}]}'
+        )
+        yield (
+            '{"id":"chatcmpl-test","object":"chat.completion.chunk",'
+            '"created":1780200000,"model":"qwen3.5:9b",'
+            '"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}'
+        )
 
 
 class FakeUsageLoggingService:
@@ -41,6 +54,23 @@ class FakeUsageLoggingService:
         self.logged_model = model
 
 
+def test_ollama_client_keeps_provider_specific_fields_in_extra_body() -> None:
+    kwargs = OllamaClient._prepare_kwargs(
+        {
+            "model": "qwen3.5:9b",
+            "messages": [{"role": "user", "content": "hello"}],
+            "provider": {"order": ["openai"]},
+        },
+        accepted_params={"model", "messages"},
+    )
+
+    assert kwargs == {
+        "model": "qwen3.5:9b",
+        "messages": [{"role": "user", "content": "hello"}],
+        "extra_body": {"provider": {"order": ["openai"]}},
+    }
+
+
 @pytest.mark.asyncio
 async def test_stream_chat_completion_emits_openai_sse_chunks() -> None:
     usage_service = FakeUsageLoggingService()
@@ -53,14 +83,17 @@ async def test_stream_chat_completion_emits_openai_sse_chunks() -> None:
     chunks = [
         chunk
         async for chunk in service.stream_chat_completion(
-            request=ChatCompletionRequest(
-                model="qwen3.5:9b",
-                messages=[
-                    ChatMessage(
-                        role="user",
-                        content="hello",
-                    )
-                ],
+            request=ChatCompletionRequest.model_validate(
+                {
+                    "model": "qwen3.5:9b",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "hello",
+                        }
+                    ],
+                    "temperature": 0.2,
+                }
             ),
             auth_context=AuthContext(api_key_id=None, api_key_name="test"),
         )
@@ -69,9 +102,8 @@ async def test_stream_chat_completion_emits_openai_sse_chunks() -> None:
     assert chunks[0].startswith("data: ")
     assert '"object":"chat.completion.chunk"' in chunks[0]
     assert '"role":"assistant"' in chunks[0]
-    assert '"content":"hel"' in chunks[1]
-    assert '"content":"lo"' in chunks[2]
-    assert '"finish_reason":"stop"' in chunks[3]
+    assert '"content":"hello"' in chunks[1]
+    assert '"finish_reason":"stop"' in chunks[2]
     assert chunks[-1] == "data: [DONE]\n\n"
     assert usage_service.logged_endpoint == "/v1/chat/completions"
     assert usage_service.logged_model == "qwen3.5:9b"

@@ -3,10 +3,13 @@ COMPOSE ?= podman compose
 .PHONY: up infra-up dev-up dev-down down restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
 
 up:
-	cd infra && $(COMPOSE) up -d
+	@echo "Using development stack on port 8010. Production runs from ../ai-gateway-prod on port 8000."
+	./scripts/dev-up.sh
 
 infra-up:
-	cd infra && $(COMPOSE) up -d postgres redis qdrant
+	@echo "Using development infra ports: Postgres 5433, Redis 6380, Qdrant 6335."
+	cd infra && test -f .env.dev || cp .env.dev.example .env.dev
+	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev up -d postgres redis qdrant
 
 dev-up:
 	./scripts/dev-up.sh
@@ -15,16 +18,16 @@ dev-down:
 	./scripts/dev-down.sh
 
 down:
-	cd infra && $(COMPOSE) down
+	./scripts/dev-down.sh
 
 restart:
-	cd infra && $(COMPOSE) restart
+	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev restart
 
 logs:
-	cd infra && $(COMPOSE) logs -f
+	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev logs -f
 
 ps:
-	cd infra && $(COMPOSE) ps
+	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev ps
 
 macos-server-install:
 	./scripts/macos/install-launchagents.sh

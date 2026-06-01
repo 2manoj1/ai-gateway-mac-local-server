@@ -1,5 +1,0 @@
-.env
-.ruff_cache/
-.runtime/
-.venv/
-__pycache__/

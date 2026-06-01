@@ -7,4 +7,4 @@ if [[ ! -f .env.dev ]]; then
   cp .env.dev.example .env.dev
 fi
 
-podman compose -f compose.dev.yaml --env-file .env.dev up -d --build
+podman compose -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev up -d --build

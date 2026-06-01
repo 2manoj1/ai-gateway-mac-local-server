@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 
 from src.dependencies.auth import AuthContextDependency
 from src.dependencies.services import get_openai_service
-from src.schemas.openai import ModelsResponse
+from src.schemas.openai import JsonDict, ModelsResponse
 from src.services.openai_service import OpenAICompatibleService
 
 router = APIRouter(tags=["OpenAI Compatible"])
@@ -36,3 +36,32 @@ async def models(
     openai_service: Annotated[OpenAICompatibleService, Depends(get_openai_service)],
 ) -> ModelsResponse:
     return await openai_service.list_models(auth_context=auth_context)
+
+
+@router.get(
+    "/models/{model}",
+    response_model=None,
+    summary="Retrieve a model",
+    description="Returns a single model object from the configured Ollama backend.",
+    operation_id="retrieveModel",
+    responses={
+        200: {
+            "description": "OpenAI-compatible model object.",
+        },
+        401: {
+            "description": "Missing or invalid API key.",
+        },
+        502: {
+            "description": "Ollama is unavailable or returned an upstream error.",
+        },
+    },
+)
+async def retrieve_model(
+    model: Annotated[str, Path(description="Model ID to retrieve.")],
+    auth_context: AuthContextDependency,
+    openai_service: Annotated[OpenAICompatibleService, Depends(get_openai_service)],
+) -> JsonDict:
+    return await openai_service.retrieve_model(
+        model=model,
+        auth_context=auth_context,
+    )

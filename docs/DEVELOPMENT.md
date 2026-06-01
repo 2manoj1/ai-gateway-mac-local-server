@@ -15,14 +15,31 @@ Repository: <https://github.com/2manoj1/ai-gateway-mac-local-server>
 git clone https://github.com/2manoj1/ai-gateway-mac-local-server.git
 cd ai-gateway-mac-local-server
 
-cp infra/.env.example infra/.env
+cp infra/.env.dev.example infra/.env.dev
 cp apps/model-gateway/.env.example apps/model-gateway/.env
 
-make up
+make dev-up
 ```
 
-`make up` starts the full Compose stack: PostgreSQL, Redis, Qdrant, and the
-containerized gateway.
+`make dev-up` starts the development Compose stack: PostgreSQL, Redis, Qdrant,
+and the containerized gateway on local port `8010`. Production runs from the
+separate `ai-gateway-prod` folder on port `8000`.
+
+Dev and production should not share env files or ports:
+
+- Dev: `infra/.env.dev`, `infra/compose.dev.yaml`, gateway
+  `http://127.0.0.1:8010`.
+- Prod: `infra/.env`, `infra/compose.yaml`, gateway
+  `http://127.0.0.1:8000`.
+
+Cloudflare Tunnel should target only the production gateway:
+
+```text
+http://127.0.0.1:8000
+```
+
+PostgreSQL, Redis, and Qdrant are internal production services and should not be
+exposed through Cloudflare.
 
 For local API development with uvicorn:
 
@@ -36,7 +53,7 @@ make api
 ## Create a Client API Key
 
 ```bash
-curl -X POST http://localhost:8000/admin/api-keys \
+curl -X POST http://localhost:8010/admin/api-keys \
   -H "X-Admin-Secret: <ADMIN_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"name":"local-app"}'
@@ -53,7 +70,7 @@ ollama pull qwen3.5:9b
 Create a client API key first, then call the direct-message agent endpoint:
 
 ```bash
-curl -N http://localhost:8000/api/v1/agent/direct-message \
+curl -N http://localhost:8010/api/v1/agent/direct-message \
   -H "Authorization: Bearer <CLIENT_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{"message":"/no_think Say hello in one short sentence.","model":"qwen3.5:9b"}'
@@ -64,7 +81,7 @@ completion-API variant. The LangGraph node calls this gateway's
 `/v1/chat/completions` endpoint over HTTP and streams the response back:
 
 ```bash
-curl -N http://localhost:8000/api/v1/agent/direct-message/completions-api \
+curl -N http://localhost:8010/api/v1/agent/direct-message/completions-api \
   -H "Authorization: Bearer <CLIENT_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{"message":"/no_think Reply with exactly: agent-ok","model":"qwen3.5:9b"}'
@@ -80,6 +97,7 @@ make api-check
 
 ```bash
 make up
+make dev-up
 make infra-up
 make down
 make logs

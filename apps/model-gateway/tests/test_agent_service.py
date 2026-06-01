@@ -58,6 +58,7 @@ async def test_direct_message_agent_streams_internal_llm_chunks() -> None:
     assert openai_service.request is not None
     assert openai_service.request.model == "qwen3.5:9b"
     assert openai_service.request.stream is True
+    assert openai_service.request.messages is not None
     assert openai_service.request.messages[0].content == "hello"
     assert openai_service.auth_context == auth_context
 
