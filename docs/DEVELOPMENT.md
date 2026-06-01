@@ -32,6 +32,27 @@ Dev and production should not share env files or ports:
 - Prod: `infra/.env`, `infra/compose.yaml`, gateway
   `http://127.0.0.1:8000`.
 
+The production startup scripts support both Podman and Docker. If you do not set `COMPOSE`, the script will prefer Podman when it is installed and fall back to Docker.
+
+`make prod-up` now rebuilds and recreates the production gateway container, ensuring the latest local code is used.
+
+Production commands:
+
+```bash
+make prod-build     # build the gateway image
+make prod-up        # start or restart production with latest code
+make prod-recreate  # stop and start production cleanly
+make prod-down      # stop production
+make prod-logs      # follow production logs
+make prod-ps        # inspect production status
+```
+
+To force Docker explicitly:
+
+```bash
+make COMPOSE="docker compose" prod-up
+```
+
 Cloudflare Tunnel should target only the production gateway:
 
 ```text

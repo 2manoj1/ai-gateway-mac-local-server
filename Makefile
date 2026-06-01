@@ -1,6 +1,23 @@
+SHELL := /usr/bin/env bash
 COMPOSE ?= podman compose
+.DEFAULT_GOAL := help
 
-.PHONY: up infra-up dev-up dev-down down restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
+.PHONY: help up infra-up dev-up dev-down down prod-build prod-up prod-recreate prod-down prod-logs prod-ps restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
+
+help:
+	@printf "Usage:\n"
+	@printf "  make help\n"
+	@printf "  make dev-up\n"
+	@printf "  make dev-down\n"
+	@printf "  make prod-up\n"
+	@printf "  make prod-build\n"
+	@printf "  make prod-recreate\n"
+	@printf "  make prod-down\n"
+	@printf "  make prod-logs\n"
+	@printf "  make prod-ps\n"
+	@printf "  make api-check\n"
+	@printf "\n"
+	@printf "Set COMPOSE=\"docker compose\" to force Docker instead of Podman.\n\n"
 
 up:
 	@echo "Using development stack on port 8010. Production runs from ../ai-gateway-prod on port 8000."
@@ -19,6 +36,23 @@ dev-down:
 
 down:
 	./scripts/dev-down.sh
+
+prod-build:
+	cd infra && $(COMPOSE) -f compose.yaml build --no-cache ai-gateway
+
+prod-up:
+	./scripts/up.sh
+
+prod-recreate: prod-down prod-up
+
+prod-down:
+	./scripts/down.sh
+
+prod-logs:
+	./scripts/logs.sh
+
+prod-ps:
+	cd infra && $(COMPOSE) -f compose.yaml ps
 
 restart:
 	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev restart

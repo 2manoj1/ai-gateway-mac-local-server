@@ -136,6 +136,27 @@ Use Docker Compose instead of Podman Compose:
 make COMPOSE="docker compose" up
 ```
 
+Production uses your system's preferred compose provider by default. If `COMPOSE` is not set, the startup scripts will prefer Podman when available and fall back to Docker.
+
+`make prod-up` now rebuilds and recreates the production gateway container so it runs the latest local code.
+
+Production commands:
+
+```bash
+make prod-build     # build the gateway image
+make prod-up        # build + recreate production containers
+make prod-recreate  # stop and restart production cleanly
+make prod-down      # stop production
+make prod-logs      # follow production logs
+make prod-ps        # inspect production status
+```
+
+You can force Docker for production as well:
+
+```bash
+make COMPOSE="docker compose" prod-up
+```
+
 ## Dev vs Production
 
 Development and production intentionally use different ports and env files:
