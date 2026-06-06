@@ -123,6 +123,8 @@ make infra-up
 make down
 make logs
 make ps
+make macos-ollama-install-official
+make macos-ollama-tune
 make macos-server-install
 make macos-server-status
 make api
@@ -141,6 +143,8 @@ local AI gateway server.
 Install or refresh the LaunchAgents:
 
 ```bash
+make macos-ollama-install-official
+make macos-ollama-tune
 make macos-server-install
 ```
 

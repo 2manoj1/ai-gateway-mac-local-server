@@ -247,6 +247,9 @@ class OpenAICompatibleService:
     def _chat_payload(self, request: ChatCompletionRequest) -> JsonDict:
         payload = self._request_payload(request)
         payload["model"] = payload.get("model") or self._settings.default_model
+        payload["keep_alive"] = self._normalize_keep_alive(
+            payload.get("keep_alive") or self._settings.ollama_keep_alive,
+        )
 
         if not payload.get("messages") and "prompt" in payload:
             payload["messages"] = [{"role": "user", "content": payload.pop("prompt")}]
@@ -258,6 +261,14 @@ class OpenAICompatibleService:
     @staticmethod
     def _request_payload(request: Any) -> JsonDict:
         return cast(JsonDict, request.model_dump(mode="json", exclude_unset=True))
+
+    @staticmethod
+    def _normalize_keep_alive(value: Any) -> Any:
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.removeprefix("-").isdigit():
+                return int(stripped)
+        return value
 
     @staticmethod
     def _dump_openai_object(value: Any) -> JsonDict:

@@ -5,9 +5,11 @@ OPENAPI_DESCRIPTION = """
 
 This is a local OpenAI-compatible API gateway for routing application traffic to Ollama.
 
-⚠️ **Research Use**: This API gateway is designed for research and development purposes on local Mac servers.
+⚠️ **Research Use**: This API gateway is designed for research and development
+purposes on local Mac servers.
 
-📧 **Contact**: For questions or to use this API gateway, please contact Manoj Mukherjee.
+📧 **Contact**: For questions or to use this API gateway, please contact
+Manoj Mukherjee.
 
 ---
 
@@ -70,7 +72,7 @@ def apply_openapi_customizations(openapi_schema: dict[str, Any]) -> dict[str, An
         "url": "https://github.com/2manoj1/ai-gateway-mac-local-server",
         "email": "info@manojmukherjee.co.in",
     }
-    
+
     components = openapi_schema.setdefault("components", {})
     security_schemes = components.setdefault("securitySchemes", {})
     security_schemes["ApiKeyHeader"] = {

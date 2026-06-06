@@ -84,6 +84,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app_name=settings.app_name,
         environment=settings.environment,
         default_model=settings.default_model,
+        chat_concurrency_limit=settings.ollama_chat_concurrency_limit,
     )
 
     try:

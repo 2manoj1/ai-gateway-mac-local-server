@@ -1,7 +1,10 @@
+import asyncio
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from inspect import signature
 from typing import Any, NoReturn, cast
 
+import httpx
 from openai import (
     APIConnectionError,
     APIError,
@@ -33,10 +36,27 @@ class OllamaClientError(RuntimeError):
 
 class OllamaClient:
     def __init__(self, settings: Settings) -> None:
+        self._chat_semaphore = asyncio.BoundedSemaphore(
+            settings.ollama_chat_concurrency_limit,
+        )
+        self._chat_acquire_timeout_seconds = (
+            settings.ollama_chat_acquire_timeout_seconds
+        )
+        self._keep_alive = self._normalize_keep_alive(settings.ollama_keep_alive)
         self._client = AsyncOpenAI(
             api_key="ollama",
             base_url=settings.ollama_base_url,
             max_retries=0,
+            timeout=settings.ollama_request_timeout_seconds,
+            http_client=httpx.AsyncClient(
+                timeout=httpx.Timeout(settings.ollama_request_timeout_seconds),
+                limits=httpx.Limits(
+                    max_connections=settings.ollama_http_max_connections,
+                    max_keepalive_connections=(
+                        settings.ollama_http_max_keepalive_connections
+                    ),
+                ),
+            ),
         )
 
     async def warmup(self, model: str) -> None:
@@ -45,10 +65,12 @@ class OllamaClient:
             messages=[
                 {
                     "role": "user",
-                    "content": "warmup",
+                    "content": ".",
                 }
             ],
-            extra_body={"keep_alive": "-1"},
+            max_tokens=1,
+            temperature=0,
+            extra_body={"keep_alive": self._keep_alive, "think": False},
         )
 
     async def close(self) -> None:
@@ -73,19 +95,20 @@ class OllamaClient:
         *,
         payload: JsonDict,
     ) -> Any:
-        try:
-            create = cast(Any, self._client.chat.completions.create)
-            response = await create(
-                **self._prepare_kwargs(
-                    payload,
-                    accepted_params=self._accepted_params(create),
-                ),
-            )
-        except (APIConnectionError, APITimeoutError, APIError) as exc:
-            self._raise_client_error(
-                "Unable to generate completion from Ollama",
-                exc,
-            )
+        async with self._chat_slot():
+            try:
+                create = cast(Any, self._client.chat.completions.create)
+                response = await create(
+                    **self._prepare_kwargs(
+                        payload,
+                        accepted_params=self._accepted_params(create),
+                    ),
+                )
+            except (APIConnectionError, APITimeoutError, APIError) as exc:
+                self._raise_client_error(
+                    "Unable to generate completion from Ollama",
+                    exc,
+                )
 
         return response
 
@@ -94,19 +117,20 @@ class OllamaClient:
         *,
         payload: JsonDict,
     ) -> AsyncIterator[str]:
-        try:
-            create = cast(Any, self._client.chat.completions.create)
-            stream = await create(
-                **self._prepare_kwargs(
-                    {**payload, "stream": True},
-                    accepted_params=self._accepted_params(create),
-                ),
-            )
-        except (APIConnectionError, APITimeoutError, APIError) as exc:
-            self._raise_client_error("Unable to stream completion from Ollama", exc)
+        async with self._chat_slot():
+            try:
+                create = cast(Any, self._client.chat.completions.create)
+                stream = await create(
+                    **self._prepare_kwargs(
+                        {**payload, "stream": True},
+                        accepted_params=self._accepted_params(create),
+                    ),
+                )
+            except (APIConnectionError, APITimeoutError, APIError) as exc:
+                self._raise_client_error("Unable to stream completion from Ollama", exc)
 
-        async for chunk in stream:
-            yield chunk.model_dump_json(exclude_none=True)
+            async for chunk in stream:
+                yield chunk.model_dump_json(exclude_none=True)
 
     async def completion(
         self,
@@ -235,6 +259,26 @@ class OllamaClient:
         async for event in stream:
             yield event.model_dump_json(exclude_none=True)
 
+    @asynccontextmanager
+    async def _chat_slot(self) -> AsyncIterator[None]:
+        try:
+            await asyncio.wait_for(
+                self._chat_semaphore.acquire(),
+                timeout=self._chat_acquire_timeout_seconds,
+            )
+        except TimeoutError as exc:
+            raise OllamaClientError(
+                "Ollama chat concurrency limit reached; retry shortly",
+                status_code=429,
+                error_type="rate_limit_error",
+                code="chat_concurrency_limit",
+            ) from exc
+
+        try:
+            yield
+        finally:
+            self._chat_semaphore.release()
+
     @staticmethod
     def _accepted_params(method: Any) -> set[str]:
         return {
@@ -259,9 +303,21 @@ class OllamaClient:
                 extra_body[key] = value
 
         if extra_body:
+            if "keep_alive" in extra_body:
+                extra_body["keep_alive"] = OllamaClient._normalize_keep_alive(
+                    extra_body["keep_alive"],
+                )
             kwargs["extra_body"] = extra_body
 
         return kwargs
+
+    @staticmethod
+    def _normalize_keep_alive(value: Any) -> Any:
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.removeprefix("-").isdigit():
+                return int(stripped)
+        return value
 
     @staticmethod
     def _raise_client_error(message: str, exc: APIError) -> NoReturn:

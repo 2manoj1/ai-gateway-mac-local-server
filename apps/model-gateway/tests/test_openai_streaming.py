@@ -17,6 +17,7 @@ class FakeOllamaClient:
         payload: JsonDict,
     ) -> AsyncIterator[str]:
         assert payload["model"] == "qwen3.5:9b"
+        assert payload["keep_alive"] == -1
         assert payload["temperature"] == 0.2
         yield (
             '{"id":"chatcmpl-test","object":"chat.completion.chunk",'
@@ -59,6 +60,7 @@ def test_ollama_client_keeps_provider_specific_fields_in_extra_body() -> None:
         {
             "model": "qwen3.5:9b",
             "messages": [{"role": "user", "content": "hello"}],
+            "keep_alive": "-1",
             "provider": {"order": ["openai"]},
         },
         accepted_params={"model", "messages"},
@@ -67,7 +69,7 @@ def test_ollama_client_keeps_provider_specific_fields_in_extra_body() -> None:
     assert kwargs == {
         "model": "qwen3.5:9b",
         "messages": [{"role": "user", "content": "hello"}],
-        "extra_body": {"provider": {"order": ["openai"]}},
+        "extra_body": {"keep_alive": -1, "provider": {"order": ["openai"]}},
     }
 
 

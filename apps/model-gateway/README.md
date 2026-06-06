@@ -141,6 +141,25 @@ Recommended local models for the M1 Pro home-lab setup:
 Use `qwen3.5:9b` as `DEFAULT_MODEL` and pass `model="nomic-embed-text"` explicitly
 for embeddings.
 
+For the Mac home-lab gateway, run the Ollama service tune-up before load testing:
+
+```bash
+make macos-ollama-install-official
+make macos-ollama-tune
+```
+
+That configures the Homebrew Ollama LaunchAgent with:
+
+```env
+OLLAMA_KEEP_ALIVE=-1
+OLLAMA_NUM_PARALLEL=10
+OLLAMA_MAX_QUEUE=10
+OLLAMA_MAX_LOADED_MODELS=1
+OLLAMA_CONTEXT_LENGTH=4096
+OLLAMA_FLASH_ATTENTION=1
+OLLAMA_KV_CACHE_TYPE=q8_0
+```
+
 Tool call example:
 
 ```python

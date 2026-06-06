@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     internal_gateway_base_url: str = "http://127.0.0.1:8000"
     ollama_warmup_on_startup: bool = True
+    ollama_keep_alive: int | str = -1
+    ollama_chat_concurrency_limit: int = 10
+    ollama_chat_acquire_timeout_seconds: float = 0.25
+    ollama_request_timeout_seconds: float = 300.0
+    ollama_http_max_connections: int = 20
+    ollama_http_max_keepalive_connections: int = 10
     default_model: str = "qwen3.5:9b"
 
     app_name: str = "Gateway API"
@@ -42,6 +48,21 @@ class Settings(BaseSettings):
             raise ValueError("QDRANT_URL is required")
         if not self.ollama_base_url:
             raise ValueError("OLLAMA_BASE_URL is required")
+        if isinstance(self.ollama_keep_alive, str) and not self.ollama_keep_alive:
+            raise ValueError("OLLAMA_KEEP_ALIVE is required")
+        if self.ollama_chat_concurrency_limit < 1:
+            raise ValueError("OLLAMA_CHAT_CONCURRENCY_LIMIT must be at least 1")
+        if self.ollama_chat_acquire_timeout_seconds <= 0:
+            raise ValueError("OLLAMA_CHAT_ACQUIRE_TIMEOUT_SECONDS must be positive")
+        if self.ollama_request_timeout_seconds <= 0:
+            raise ValueError("OLLAMA_REQUEST_TIMEOUT_SECONDS must be positive")
+        if self.ollama_http_max_connections < self.ollama_chat_concurrency_limit:
+            raise ValueError(
+                "OLLAMA_HTTP_MAX_CONNECTIONS must be greater than or equal to "
+                "OLLAMA_CHAT_CONCURRENCY_LIMIT"
+            )
+        if self.ollama_http_max_keepalive_connections < 1:
+            raise ValueError("OLLAMA_HTTP_MAX_KEEPALIVE_CONNECTIONS must be at least 1")
         if not self.default_model:
             raise ValueError("DEFAULT_MODEL is required")
         if not self.app_name:

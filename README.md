@@ -232,6 +232,13 @@ DATABASE_URL=postgresql+psycopg://aigateway:change-me-later@localhost:5433/aigat
 REDIS_URL=redis://localhost:6380/0
 QDRANT_URL=http://localhost:6335
 OLLAMA_BASE_URL=http://localhost:11434/v1
+OLLAMA_WARMUP_ON_STARTUP=true
+OLLAMA_KEEP_ALIVE=-1
+OLLAMA_CHAT_CONCURRENCY_LIMIT=10
+OLLAMA_CHAT_ACQUIRE_TIMEOUT_SECONDS=0.25
+OLLAMA_REQUEST_TIMEOUT_SECONDS=300
+OLLAMA_HTTP_MAX_CONNECTIONS=20
+OLLAMA_HTTP_MAX_KEEPALIVE_CONNECTIONS=10
 DEFAULT_MODEL=qwen3.5:9b
 APP_NAME=Gateway API
 ENVIRONMENT=development
@@ -249,7 +256,34 @@ production copy, keep:
 ```env
 GATEWAY_PORT=8000
 OLLAMA_BASE_URL=http://host.containers.internal:11434/v1
+OLLAMA_WARMUP_ON_STARTUP=true
+OLLAMA_KEEP_ALIVE=-1
+OLLAMA_CHAT_CONCURRENCY_LIMIT=10
 DEFAULT_MODEL=qwen3.5:9b
+```
+
+## Ollama Concurrency
+
+For the 32 GB M1 Pro home-lab server, tune the Homebrew Ollama service before
+starting the gateway:
+
+```bash
+make macos-ollama-install-official
+make macos-ollama-tune
+```
+
+The install step downloads the official Darwin release, verifies its checksum,
+and installs it under `~/.local/ollama`. The tune step points the Ollama
+LaunchAgent at that runtime, keeps the model loaded, allows 10 parallel chat
+requests, caps the queue at 10, uses a 4096-token context, and preloads
+`DEFAULT_MODEL`.
+
+As checked on 2026-06-06, upstream Ollama latest was `v0.30.6`, published on
+2026-06-05. Verify the binary with:
+
+```bash
+ollama --version
+curl -fsS http://127.0.0.1:11434/api/version
 ```
 
 ## API Key Administration

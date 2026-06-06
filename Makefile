@@ -2,11 +2,13 @@ SHELL := /usr/bin/env bash
 COMPOSE ?= podman compose
 .DEFAULT_GOAL := help
 
-.PHONY: help up infra-up dev-up dev-down down prod-build prod-up prod-recreate prod-down prod-logs prod-ps restart logs ps macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
+.PHONY: help up infra-up dev-up dev-down down prod-build prod-up prod-recreate prod-down prod-logs prod-ps restart logs ps macos-ollama-install-official macos-ollama-tune macos-server-install macos-server-status api api-sync format lint type test api-check migrate migrate-up api-format api-lint api-type api-test
 
 help:
 	@printf "Usage:\n"
 	@printf "  make help\n"
+	@printf "  make macos-ollama-install-official\n"
+	@printf "  make macos-ollama-tune\n"
 	@printf "  make dev-up\n"
 	@printf "  make dev-down\n"
 	@printf "  make prod-up\n"
@@ -62,6 +64,12 @@ logs:
 
 ps:
 	cd infra && $(COMPOSE) -p ai-gateway-dev -f compose.dev.yaml --env-file .env.dev ps
+
+macos-ollama-install-official:
+	./scripts/macos/install-official-ollama-release.sh
+
+macos-ollama-tune:
+	./scripts/macos/configure-ollama-for-gateway.sh
 
 macos-server-install:
 	./scripts/macos/install-launchagents.sh
